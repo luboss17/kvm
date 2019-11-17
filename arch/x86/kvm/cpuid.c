@@ -1053,8 +1053,8 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	}
 	else if (eax==0x4FFFFFFE)
 	{
-		ebx = (u32)((vcpu->exit_cycle_counts.total_cycle_count & 0xFFFFFFFF00000000LL) >> 32);
-		ecx = (u32)(vcpu->exit_cycle_counts.total_cycle_count & 0xFFFFFFFFLL);
+		ebx = (u32)(vcpu->exit_cycle_counts.total_cycle_count & 0xFFFFFFFF00000000);
+		ecx = (u32)(vcpu->exit_cycle_counts.total_cycle_count & 0xFFFFFFFF);
 	}
 	else  if (eax==0x4FFFFFFD)
 	{
