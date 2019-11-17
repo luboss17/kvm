@@ -63,7 +63,7 @@
 
 MODULE_AUTHOR("Qumranet");
 MODULE_LICENSE("GPL");
-
+u32 exit_count = 0;
 static const struct x86_cpu_id vmx_cpu_id[] = {
 	X86_FEATURE_MATCH(X86_FEATURE_VMX),
 	{}
@@ -5848,9 +5848,20 @@ void dump_vmcs(void)
  */
 static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 {
+	//Added
+	int retVal;
+	u64 start_time = 0;
+	u64 end_time = 0;
+	exit_count = vcpu->exit_cycle_counts.total_exit_count;
+	exit_count++;
+	vcpu->exit_cycle_counts.total_exit_count = exit_count;
+
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
+
+	//Added
+	start_time = rdtsc();
 
 	trace_kvm_exit(exit_reason, vcpu, KVM_ISA_VMX);
 
@@ -5866,16 +5877,35 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 
 	/* If guest state is invalid, start emulating */
 	if (vmx->emulation_required)
-		return handle_invalid_guest_state(vcpu);
+		//return handle_invalid_guest_state(vcpu);
+	//Added
+	{
+		retVal = handle_invalid_guest_state(vcpu);
+		end_time = rdtsc();
+		vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
+		return retVal;
+	}
 
 	if (is_guest_mode(vcpu) && nested_vmx_exit_reflected(vcpu, exit_reason))
-		return nested_vmx_reflect_vmexit(vcpu, exit_reason);
+		//return nested_vmx_reflect_vmexit(vcpu, exit_reason);
+	//Added
+	{
+		retVal = nested_vmx_reflect_vmexit(vcpu, exit_reason);
+		end_time = rdtsc();
+		vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
+		
+		return retVal;
+	}	
 
 	if (exit_reason & VMX_EXIT_REASONS_FAILED_VMENTRY) {
 		dump_vmcs();
 		vcpu->run->exit_reason = KVM_EXIT_FAIL_ENTRY;
 		vcpu->run->fail_entry.hardware_entry_failure_reason
 			= exit_reason;
+
+		//Added
+		end_time = rdtsc();
+		vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;	
 		return 0;
 	}
 
@@ -5934,7 +5964,15 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 
 	if (exit_reason < kvm_vmx_max_exit_handlers
 	    && kvm_vmx_exit_handlers[exit_reason])
-		return kvm_vmx_exit_handlers[exit_reason](vcpu);
+		//return kvm_vmx_exit_handlers[exit_reason](vcpu);
+		//Added
+		{ 
+			retVal = kvm_vmx_exit_handlers[exit_reason](vcpu); 
+			end_time = rdtsc();
+			vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
+		
+			return retVal;
+		}
 	else {
 		vcpu_unimpl(vcpu, "vmx: unexpected exit reason 0x%x\n",
 				exit_reason);
@@ -5944,6 +5982,11 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 			KVM_INTERNAL_ERROR_UNEXPECTED_EXIT_REASON;
 		vcpu->run->internal.ndata = 1;
 		vcpu->run->internal.data[0] = exit_reason;
+
+		//Added
+		end_time = rdtsc();
+		vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
+		
 		return 0;
 	}
 }

@@ -305,6 +305,13 @@ struct kvm_vcpu {
 	} async_pf;
 #endif
 
+//Added
+	struct {
+		u32 total_exit_count;
+		u64 total_cycle_count;
+	} exit_cycle_counts;
+
+
 #ifdef CONFIG_HAVE_KVM_CPU_RELAX_INTERCEPT
 	/*
 	 * Cpu relax intercept or pause loop exit optimization
