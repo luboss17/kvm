@@ -1,3 +1,16 @@
 Homework for CMPE283
 Student Name: Huy Huynh
 Student ID: 009405513
+
+
+Make Kernel Instruction:
+
+make mrproper
+
+sudo make gconfig
+
+sudo make -j$((`nproc`+1))
+
+sudo make modules_install
+
+sudo make install
