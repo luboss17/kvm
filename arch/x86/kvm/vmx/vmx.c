@@ -60,7 +60,6 @@
 #include "vmcs12.h"
 #include "vmx.h"
 #include "x86.h"
-
 MODULE_AUTHOR("Qumranet");
 MODULE_LICENSE("GPL");
 u32 exit_count = 0;
@@ -5859,12 +5858,13 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
+	
 
 	//Added
 	start_time = rdtsc();
 
 	trace_kvm_exit(exit_reason, vcpu, KVM_ISA_VMX);
-
+        
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
 	 * updated. Another good is, in kvm_vm_ioctl_get_dirty_log, before
@@ -5882,6 +5882,8 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 	{
 		retVal = handle_invalid_guest_state(vcpu);
 		end_time = rdtsc();
+                u64 timeSpend = end_time - start_time;
+
 		vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
 		return retVal;
 	}
@@ -5969,6 +5971,8 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 		{ 
 			retVal = kvm_vmx_exit_handlers[exit_reason](vcpu); 
 			end_time = rdtsc();
+			u64 time_taken = end_time - start_time;
+					
 			vcpu->exit_cycle_counts.total_cycle_count = vcpu->exit_cycle_counts.total_cycle_count + end_time - start_time;
 		
 			return retVal;

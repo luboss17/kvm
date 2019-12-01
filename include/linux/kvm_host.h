@@ -38,7 +38,8 @@
 #ifndef KVM_MAX_VCPU_ID
 #define KVM_MAX_VCPU_ID KVM_MAX_VCPUS
 #endif
-
+u64 timeSpendInEachExit[65];
+u64 exitCounterForExitTaken[65];
 /*
  * The bit 16 ~ bit 31 of kvm_memory_region::flags are internally used
  * in kvm, other bits are visible for userspace which are defined in
@@ -309,6 +310,7 @@ struct kvm_vcpu {
 	struct {
 		u32 total_exit_count;
 		u64 total_cycle_count;
+		
 	} exit_cycle_counts;
 
 

@@ -23,7 +23,6 @@
 #include "mmu.h"
 #include "trace.h"
 #include "pmu.h"
-
 static u32 xstate_required_size(u64 xstate_bv, bool compacted)
 {
 	int feature_bit = 0;
@@ -1038,13 +1037,15 @@ bool kvm_cpuid(struct kvm_vcpu *vcpu, u32 *eax, u32 *ebx,
 EXPORT_SYMBOL_GPL(kvm_cpuid);
 
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
-{
+{             
 	u32 eax, ebx, ecx, edx;
 
 	if (cpuid_fault_enabled(vcpu) && !kvm_require_cpl(vcpu, 0))
 		return 1;
 
 	eax = kvm_rax_read(vcpu);
+	u32 exit_reason = 0;
+
 	if(eax == 0x4FFFFFFF)
 	{
 		u32 cpuExit = vcpu->exit_cycle_counts.total_exit_count;
@@ -1058,11 +1059,30 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	}
 	else  if (eax==0x4FFFFFFD)
 	{
-		//Todo: To be implemented
+	  if(ecx < 0 || ecx > 68){
+		  eax = 0;
+		  ebx = 0;
+		  ecx = 0;
+		  edx = 0xFFFFFFFF;
+	  }
+		exit_reason = ecx;
+		eax = (&exitCounterForExitTaken[exit_reason]);
+		edx = 0x00;
+		ebx = 0x00;
 	}
 	else  if (eax==0x4FFFFFFC)
-	{
-		//Todo: To be implemented
+	{   
+	    if(ecx <0 || ecx > 68){
+	     eax = 0;
+	     ebx = 0;
+	     ecx = 0;
+	     edx = 0xFFFFFFFF;
+	    }
+	    u64 timeTaken = (&timeSpendInEachExit[ecx]);
+	    
+	    ebx = (timeTaken >> 32) & 0xFFFFFFFF;
+	    ecx = timeTaken & 0xFFFFFFFF; 
+
 	}
 	else
 	{
