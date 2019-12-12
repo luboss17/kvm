@@ -3,7 +3,7 @@ Student Name: Huy Huynh
 Student ID: 009405513
 
 //Install independence:
-sudo apt-get install libgtk2.0-dev libglib2.0-dev libglade2-dev pkg-config gcc flex bison
+sudo apt-get install libgtk2.0-dev libglib2.0-dev libglade2-dev pkg-config gcc flex bison libssl-dev
 
 
 //Make Kernel Instruction:
